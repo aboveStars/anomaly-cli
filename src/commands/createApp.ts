@@ -8,7 +8,7 @@ import { AuthUser } from "../auth/index";
 import { getStorage, ref, uploadBytesResumable } from "firebase/storage";
 import { app } from "../firebase/clientApp";
 
-const BACKEND_ENDPOINT = "http://localhost:3000/api/createApp";
+const BACKEND_ENDPOINT = "https://anomaly-git-app-apidon.vercel.app/api/createApp";
 
 export async function createApp(user: AuthUser): Promise<void> {
   try {
