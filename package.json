@@ -1,0 +1,55 @@
+{
+  "name": "anomaly-cli",
+  "version": "1.0.0",
+  "main": "dist/index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "tsc",
+    "start": "tsc && node dist/index.js",
+    "prepublishOnly": "npm run build"
+  },
+  "bin": {
+    "anomaly": "./dist/index.js"
+  },
+  "keywords": [
+    "cli",
+    "anomaly",
+    "command-line",
+    "tool"
+  ],
+  "author": "Yunus Korkmaz <yunus.korkmaz@leansoc.com>",
+  "license": "MIT",
+  "description": "A command-line interface tool for anomaly detection and management",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/aboveStars/anomaly-cli.git"
+  },
+  "bugs": {
+    "url": "https://github.com/aboveStars/anomaly-cli/issues"
+  },
+  "homepage": "https://github.com/aboveStars/anomaly-cli#readme",
+  "files": [
+    "dist/**/*",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@types/archiver": "^6.0.3",
+    "@types/node": "^24.0.1",
+    "archiver": "^7.0.1",
+    "chalk": "^5.4.1",
+    "commander": "^14.0.0",
+    "firebase": "^11.9.1",
+    "ora": "^8.2.0",
+    "prompts": "^2.4.2",
+    "ts-node": "^10.9.2",
+    "typescript": "^5.8.3"
+  },
+  "devDependencies": {
+    "@types/prompts": "^2.4.9",
+    "esbuild": "^0.25.5"
+  }
+}
