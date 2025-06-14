@@ -3,7 +3,7 @@
 import { Command } from "commander";
 import chalk from "chalk";
 import { authManager, AuthUser } from "./auth/index";
-import { listDirectoryContents } from "./commands/list";
+
 import { createApp } from "./commands/createApp";
 
 const program = new Command();
@@ -78,40 +78,9 @@ program
       })
   );
 
-// Protected commands that require authentication
 program
-  .command("dashboard")
-  .description("Open your dashboard")
-  .action(async () => {
-    const user = await requireAuth();
-    console.log(chalk.blue(`🏠 Opening dashboard for ${user.email}...`));
-    // Add your dashboard logic here
-  });
-
-program
-  .command("profile")
-  .description("View your profile")
-  .action(async () => {
-    const user = await requireAuth();
-    console.log(chalk.blue("\n👤 Your Profile:\n"));
-    console.log(`   Email: ${chalk.cyan(user.email)}`);
-    console.log(`   User ID: ${chalk.gray(user.uid)}`);
-    console.log(
-      `   Display Name: ${chalk.cyan(user.displayName || "Not set")}\n`
-    );
-  });
-
-program
-  .command("list")
-  .description("List contents of the current directory")
-  .action(async () => {
-    const user = await requireAuth();
-    await listDirectoryContents(user);
-  });
-
-program
-  .command("create")
-  .description("Create a new app by zipping and uploading your project")
+  .command("init")
+  .description("Initialize and secure your app with anomaly protection")
   .action(async () => {
     const user = await requireAuth();
     await createApp(user);
@@ -131,6 +100,7 @@ program
     );
     console.log(`\nTo get started:`);
     console.log(`  • Run ${chalk.cyan("anomaly auth login")} to sign in`);
+    console.log(`  • Run ${chalk.cyan("anomaly init")} to secure your app`);
     console.log(
       `  • Run ${chalk.cyan("anomaly --help")} to see all commands\n`
     );

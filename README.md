@@ -24,10 +24,7 @@ anomaly auth status   # Check authentication status
 anomaly auth logout   # Sign out
 
 # Main commands (require authentication)
-anomaly profile       # View your profile
-anomaly dashboard     # Open your dashboard
-anomaly list          # List contents of current directory
-anomaly create        # Create a new app by zipping and uploading your project
+anomaly init          # Initialize and secure your app with anomaly protection
 
 # Get help
 anomaly --help
@@ -36,10 +33,8 @@ anomaly --help
 ## Features
 
 - 🔐 **Firebase Authentication** - Secure login system
-- 📁 **Directory Management** - List and manage directory contents
-- 🚀 **App Creation** - Zip and upload your projects
+- 🛡️ **App Security** - Initialize and protect your applications with anomaly detection
 - 💻 **User-Friendly Interface** - Beautiful colored output with intuitive commands
-- 📊 **Dashboard Integration** - Access your personalized dashboard
 
 ## Requirements
 

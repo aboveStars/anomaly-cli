@@ -8,13 +8,15 @@ import { AuthUser } from "../auth/index";
 import { getStorage, ref, uploadBytesResumable } from "firebase/storage";
 import { app } from "../firebase/clientApp";
 
-// You can replace this with your actual backend endpoint
-const BACKEND_ENDPOINT =
-  "https://anomaly-git-app-apidon.vercel.app/api/createApp"; // Replace with your actual endpoint
+const BACKEND_ENDPOINT = "http://localhost:3000/api/createApp";
 
 export async function createApp(user: AuthUser): Promise<void> {
   try {
-    console.log(chalk.blue.bold(`\n🚀 Create New App for ${user.email}\n`));
+    console.log(
+      chalk.blue.bold(
+        `\n🚀 Initializing new app creation for ${chalk.cyan(user.email)}\n`
+      )
+    );
 
     // Step 1: Get app name from user
     const appNameResponse = await prompts({
@@ -30,12 +32,14 @@ export async function createApp(user: AuthUser): Promise<void> {
     });
 
     if (!appNameResponse.appName) {
-      console.log(chalk.yellow("\n👋 Operation cancelled!"));
+      console.log(chalk.yellow("\n👋 App creation cancelled by user"));
       return;
     }
 
     const appName = appNameResponse.appName.trim();
-    console.log(chalk.green(`\n✅ App name: ${chalk.bold(appName)}`));
+    console.log(
+      chalk.green(`\n✅ App name confirmed: ${chalk.bold.white(appName)}`)
+    );
 
     // Step 2: Get current directory and create zip
     const currentDir = process.cwd();
@@ -43,25 +47,28 @@ export async function createApp(user: AuthUser): Promise<void> {
     const zipFileName = `${projectName}-${Date.now()}.zip`;
     const tempZipPath = path.join(currentDir, zipFileName);
 
-    console.log(
-      chalk.cyan(`\n🗂️  Preparing to zip project: ${chalk.bold(projectName)}`)
-    );
-    console.log(chalk.gray(`📍 Current directory: ${currentDir}`));
+    console.log(chalk.cyan(`\n📁 Preparing project archive for deployment`));
+    console.log(chalk.gray(`   └─ Project: ${chalk.white(projectName)}`));
+    console.log(chalk.gray(`   └─ Source: ${currentDir}`));
 
     const zipSpinner = ora(
-      "📦 Creating zip file (excluding node_modules)..."
+      "📦 Creating project archive (excluding node_modules and .git)..."
     ).start();
 
     try {
       await createZipFile(currentDir, tempZipPath);
-      zipSpinner.succeed(chalk.green("📦 Zip file created successfully!"));
+      zipSpinner.succeed(
+        chalk.green("📦 Project archive created successfully")
+      );
     } catch (error) {
-      zipSpinner.fail(chalk.red("❌ Failed to create zip file"));
+      zipSpinner.fail(chalk.red("❌ Failed to create project archive"));
       throw error;
     }
 
     // Step 3: Upload to Firebase Storage
-    console.log(chalk.cyan("\n☁️  Uploading to Firebase Storage..."));
+    console.log(
+      chalk.cyan("\n☁️  Uploading project archive to cloud storage...")
+    );
 
     try {
       const uploadedFileName = await uploadToFirebase(
@@ -69,49 +76,55 @@ export async function createApp(user: AuthUser): Promise<void> {
         zipFileName,
         user
       );
+      console.log(chalk.green(`✅ Upload completed successfully`));
       console.log(
-        chalk.green(
-          `✅ File uploaded successfully: ${chalk.bold(uploadedFileName)}`
-        )
+        chalk.gray(`   └─ Cloud file: ${chalk.white(uploadedFileName)}`)
       );
 
       // Step 4: Send request to backend
-      console.log(chalk.cyan("\n🌐 Creating app in backend..."));
+      console.log(
+        chalk.cyan("\n🔧 Requesting app deployment from backend service...")
+      );
       const appId = await createAppInBackend(uploadedFileName, appName, user);
 
-      console.log(chalk.green.bold("\n🎉 App created successfully!"));
-      console.log(chalk.gray(`   App Name: ${appName}`));
-      console.log(chalk.gray(`   App ID: ${appId}`));
-      console.log(chalk.gray(`   Source File: ${uploadedFileName}`));
+      console.log(chalk.green.bold("\n🎉 Application deployed successfully!"));
+      console.log(chalk.gray(`   └─ App Name: ${chalk.white(appName)}`));
+      console.log(chalk.gray(`   └─ App ID: ${chalk.white(appId)}`));
+      console.log(
+        chalk.gray(`   └─ Source Archive: ${chalk.white(uploadedFileName)}`)
+      );
 
       // Display dashboard URL
       const dashboardUrl = `https://anomaly-git-app-apidon.vercel.app/dashboard/${appId}`;
-      console.log(chalk.blue.bold(`\n🔗 Dashboard URL:`));
-      console.log(chalk.cyan(`   ${dashboardUrl}`));
+      console.log(chalk.blue.bold(`\n🌐 Your app dashboard is ready:`));
+      console.log(chalk.cyan.underline(`   ${dashboardUrl}`));
       console.log(
         chalk.gray(
-          `\n💡 You can now visit your app dashboard at the URL above.`
+          `\n💡 Visit the dashboard URL above to manage your application`
         )
       );
     } finally {
       // Clean up temporary zip file
       try {
         await fs.unlink(tempZipPath);
-        console.log(chalk.gray("\n🧹 Cleaned up temporary files"));
+        console.log(chalk.gray("🧹 Temporary files cleaned up"));
       } catch (cleanupError) {
         console.log(
-          chalk.yellow("⚠️  Warning: Could not clean up temporary zip file")
+          chalk.yellow("⚠️  Warning: Could not remove temporary archive file")
         );
       }
     }
 
-    console.log(chalk.blue.bold("\n✨ All done! Your app is ready to go!\n"));
+    console.log(
+      chalk.green.bold("\n✨ App creation completed successfully! 🚀\n")
+    );
   } catch (error: any) {
     if (error.name === "ExitPromptError") {
-      console.log(chalk.yellow("\n👋 Operation cancelled!"));
+      console.log(chalk.yellow("\n👋 App creation cancelled by user"));
       return;
     }
-    console.error(chalk.red(`\n❌ Error creating app: ${error.message}`));
+    console.error(chalk.red(`\n❌ App creation failed: ${error.message}`));
+    console.error(chalk.gray("💡 Please check your connection and try again"));
     throw error;
   }
 }
@@ -139,10 +152,21 @@ async function createZipFile(
     archive.pipe(output);
 
     // Add all files except node_modules and other common excludes
-    archive.glob("**/*", {
-      cwd: sourceDir,
-      ignore: ["node_modules/**", ".git/**"],
-    });
+
+    const projectName = path.basename(sourceDir);
+    const zipFileName = path.basename(outputPath);
+
+    archive.glob(
+      "**/*",
+      {
+        cwd: sourceDir,
+        ignore: ["node_modules/**", ".git/**", "dist/**", zipFileName],
+        dot: true,
+      },
+      {
+        prefix: `${projectName}/`,
+      }
+    );
 
     archive.finalize();
   });
@@ -202,7 +226,9 @@ async function createAppInBackend(
   appName: string,
   user: AuthUser
 ): Promise<string> {
-  const backendSpinner = ora("🌐 Sending request to backend...").start();
+  const backendSpinner = ora(
+    "🔧 Communicating with deployment service..."
+  ).start();
 
   try {
     // Get the auth token
@@ -228,14 +254,16 @@ async function createAppInBackend(
     clearTimeout(timeoutId);
 
     if (response.ok) {
-      backendSpinner.succeed(chalk.green("🌐 Backend request successful!"));
+      backendSpinner.succeed(
+        chalk.green("🔧 Deployment service responded successfully")
+      );
 
       // Parse the response to get the appId
       const responseData = await response.json();
       const appId = responseData.appId;
 
       if (!appId) {
-        throw new Error("Server response missing appId");
+        throw new Error("Deployment service did not return a valid app ID");
       }
 
       return appId;
@@ -249,20 +277,22 @@ async function createAppInBackend(
         // If JSON parsing fails, use statusText
       }
       throw new Error(
-        `Backend returned status ${response.status} - ${errorMessage}`
+        `Deployment service error (${response.status}): ${errorMessage}`
       );
     }
   } catch (error: any) {
-    backendSpinner.fail(chalk.red("❌ Backend request failed"));
+    backendSpinner.fail(chalk.red("❌ Deployment service request failed"));
 
     if (error.name === "AbortError") {
-      throw new Error("Request timeout - please check your connection");
+      throw new Error(
+        "Request timed out after 30 seconds - please check your internet connection"
+      );
     } else if (error.message.includes("fetch")) {
       throw new Error(
-        "No response from backend - please check your connection"
+        "Unable to reach deployment service - please verify your internet connection"
       );
     } else {
-      throw new Error(`Request error: ${error.message}`);
+      throw new Error(`Deployment request failed: ${error.message}`);
     }
   }
 }
