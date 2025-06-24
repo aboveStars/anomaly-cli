@@ -2,9 +2,9 @@
 
 import { Command } from "commander";
 import chalk from "chalk";
-import { authManager, AuthUser } from "./auth/index";
+import { authManager, AuthUser } from "./auth/index.js";
 
-import { createApp } from "./commands/createApp";
+import { createApp } from "./commands/createApp.js";
 
 const program = new Command();
 

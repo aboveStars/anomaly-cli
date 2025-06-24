@@ -1,14 +1,16 @@
 import fs from "fs/promises";
+import fsSync from "fs";
 import path from "path";
 import chalk from "chalk";
 import prompts from "prompts";
 import ora from "ora";
 import archiver from "archiver";
-import { AuthUser } from "../auth/index";
+import { AuthUser } from "../auth/index.js";
 import { getStorage, ref, uploadBytesResumable } from "firebase/storage";
-import { app } from "../firebase/clientApp";
+import { app } from "../firebase/clientApp.js";
 
-const BACKEND_ENDPOINT = "https://anomaly-git-app-apidon.vercel.app/api/createApp";
+const BACKEND_ENDPOINT =
+  "https://anomaly-git-app-apidon.vercel.app/api/createApp";
 
 export async function createApp(user: AuthUser): Promise<void> {
   try {
@@ -134,7 +136,7 @@ async function createZipFile(
   outputPath: string
 ): Promise<void> {
   return new Promise((resolve, reject) => {
-    const output = require("fs").createWriteStream(outputPath);
+    const output = fsSync.createWriteStream(outputPath);
     const archive = archiver("zip", {
       zlib: { level: 9 }, // Maximum compression
     });
